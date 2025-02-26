@@ -30,7 +30,7 @@ const ProfileSelector =()=>{
   );
 };
 
-const Matches =()=>{
+const Matches =({onSelectMatch})=>{
 
   return (
     <div className='rounded-lg shadow-lg p-4'>
@@ -41,7 +41,7 @@ const Matches =()=>{
       {id:2, firstName:'Rahul',lastName:"sony", photo:"http://127.0.0.1:8080/03401693-2cfa-47f6-ba6a-5581c4791f65.jpg"},
     ].map((match) => (
       <li key={match.id} className='mb-2'>
-          <button className='w-full flex items-center space-x-4 hover:bg-gray-200 p-4 rounded-lg'>
+          <button className='w-full flex items-center space-x-4 hover:bg-gray-200 p-4 rounded-lg' onClick={onSelectMatch}>
             <img src={match.photo
             } className='w-16 h-16 rounded-full'/>
             <span>
@@ -56,19 +56,57 @@ const Matches =()=>{
   )
 }
 
-const renderScreen= (currentState) =>{
-  switch(currentState){
-    case 'profile':
-      return <ProfileSelector />
-    case 'matches':
-      return <Matches />
-    default:
-      return <ProfileSelector />
-  }
-}
 
+const ChatScreen =()=>{
+  const [input, setInput] = useState('');
+  const messages =["Hii","How are you", "I'm good", "How about you"];
+  const sendMessage =()=>{
+    if(input.trim()){
+      messages.push(input);
+      setInput('');
+    }
+   
+  }
+
+  return (
+    <div className='rounded-lg shadow-lg p-4'>
+      <h2 className='text-2xl font-bold mb-4'>Chat with Rahul Raj</h2>
+      <div className='h-[50vh] border rounded overflow-y-auto mb-4 p-4'>
+        {messages.map((message,index)=>(
+          <div key={index}>
+            <div className='mb-4 p-2 rounded bg-gray-100 inline-block'>
+              {message}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className='flex space-x-4'>
+        <input type='text' 
+          value={input} 
+          onChange={(e)=>setInput(e.target.value)}
+          className='border p-2 w-full' 
+          placeholder='Type your message here'/>
+        <button onClick={sendMessage} className='bg-blue-500 text-white p-2 rounded'>Send</button>
+        </div>
+    </div>
+  )
+}
 function App() {
   const [currentState,setCurrentState] = useState('profile');
+
+  const renderScreen= () =>{
+    switch(currentState){
+      case 'profile':
+        return <ProfileSelector />
+      case 'matches':
+        return <Matches onSelectMatch={()=>setCurrentState('chat')}/>
+      case 'chat':
+        return <ChatScreen />
+      default:
+        return <ProfileSelector />
+    }
+  }
+
   return (
     <>
       <div className='max-w-md mx-auto'>
