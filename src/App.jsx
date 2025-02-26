@@ -1,6 +1,7 @@
 import './index.css';
 import './App.css'
 import {User,MessageCircle, X, Heart} from "lucide-react"
+import React, {useState} from 'react';
 
 
 const ProfileSelector =()=>{
@@ -54,16 +55,28 @@ const Matches =()=>{
     </div>
   )
 }
+
+const renderScreen= (currentState) =>{
+  switch(currentState){
+    case 'profile':
+      return <ProfileSelector />
+    case 'matches':
+      return <Matches />
+    default:
+      return <ProfileSelector />
+  }
+}
+
 function App() {
+  const [currentState,setCurrentState] = useState('profile');
   return (
     <>
       <div className='max-w-md mx-auto'>
         <nav className='flex justify-between items-center p-4 bg-gray-800 text-white'>
-          <User />
-          <MessageCircle/>
+          <User onClick={()=>setCurrentState('profile')} />
+          <MessageCircle onClick ={() => setCurrentState('matches')}/>
         </nav>
-       {/* <ProfileSelector />*/}
-        <Matches/>
+        {renderScreen(currentState)}
       </div>
     </>
   )
