@@ -81,11 +81,12 @@ const fetchConversation = async(conversationId)=>{
 const ProfileSelector =( ({profile, onSwipe})=>(
   console.log(profile),
   profile? (
-    <div className='rounded-lg  p-4 overflow-hidden'>
+    <div className='rounded-lg p-4 overflow-hidden bg-white shadow-lg'>
         <div className='relative'> 
-          <img src={`http://127.0.0.1:8080/${profile.imageUrl}`}/>
-          <div className='absolute bottom-0 left-0 right-0 text-white p-4 bg-gradient-to-t from-black-500 to-transparent'> 
+          <img className='h-[60vh]' src={`http://127.0.0.1:8080/${profile.imageUrl}`}/>
+          <div className='absolute bottom-0 left-0 right-0 text-white p-4 bg-gradient-to-t from-black to-transparent'> 
              <h2 className='text-3xl font-bold'>{profile.firstName} {profile.lastName}, {profile.age}</h2>
+             <h3>{profile.ethnicity}</h3>
           </div>
         </div>
         <div className='p-4'> 
@@ -146,9 +147,9 @@ const ChatScreen =({currentMatch,conversation, refreshState})=>{
   }
 
   return currentMatch?(
-    <div className='rounded-lg shadow-lg p-4'>
+    <div className='rounded-lg h-[92vh] overflow-y-auto shadow-lg p-4'>
       <h2 className='text-2xl font-bold mb-4'>Chat with {currentMatch.firstName} {currentMatch.lastName}</h2>
-      <div className='h-[50vh] border rounded overflow-y-auto mb-4 p-4'>
+      <div className='h-[70vh] border rounded overflow-y-auto mb-4 p-4'>
         {conversation.messages.map((message,index)=>(
           <div key={index}>
             <div className='mb-4 p-2 rounded bg-gray-100 inline-block'>
