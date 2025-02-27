@@ -52,7 +52,7 @@ const postMessage = async(conversationId,message)=>{
         },
         body: JSON.stringify({
           messageText : message,
-          authorId : 1
+          authorId : "user"
         })
       });
       if(!response.ok){
@@ -132,30 +132,65 @@ const Matches =({matches,onSelectMatch})=>{
 }
 
 
-const ChatScreen =({currentMatch,conversation, refreshState})=>{
+const ChatScreen =({currentMatch,conversation, refreshState,setCurrentMatchandChat})=>{
   const [input, setInput] = useState('');
-  //const messages =["Hii","How are you", "I'm good", "How about you"];
+ 
+  const handleSend = async () => {
+    if (input.trim()) {
+      const newMessage = {
+        messageText: input,
+        authorId: 'user',  
+      };
 
-  const handleSend =async ()=>{
-    if(input.trim()){
-      await postMessage(conversation.id,input)
-      setInput('');
-      
+      const optimisticConversation = {
+        ...conversation,
+        messages: [...conversation.messages, newMessage]
+      };
+  
+      setCurrentMatchandChat(prevState => ({
+        ...prevState,
+        conversation: optimisticConversation
+      }));
+  
+      setInput(''); 
+  
+      try {
+
+        await postMessage(conversation.id, input);
+        // Optionally, refresh the state if needed to ensure synchronization with the server
+        refreshState();  // Assuming refreshState fetches and updates the entire conversation
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        // Optionally handle the error, e.g., notify the user, log errors, or roll back the optimistic update
+      }
     }
-    refreshState();
-   
-  }
+  };
+  
+
 
   return currentMatch?(
     <div className='rounded-lg h-[92vh] overflow-y-auto shadow-lg p-4'>
       <h2 className='text-2xl font-bold mb-4'>Chat with {currentMatch.firstName} {currentMatch.lastName}</h2>
       <div className='h-[70vh] border rounded overflow-y-auto mb-4 p-4'>
         {conversation.messages.map((message,index)=>(
-          <div key={index}>
-            <div className='mb-4 p-2 rounded bg-gray-100 inline-block'>
+          <div key={index} className={`flex ${message.authorId === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+          <div className={`flex items-end ${message.authorId === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+            {message.authorId === 'user' ? (<User size={15} />) : 
+            (<img
+              src={`http://127.0.0.1:8080/${currentMatch.imageUrl}`}
+              className="w-5 h-5 rounded-full"
+            />)}
+            <div
+              className={`max-w-xs px-4 py-2 rounded-2xl ${
+                message.authorId === 'user'
+                  ? 'bg-blue-500 text-white ml-2'
+                  : 'bg-gray-200 text-gray-800 mr-2'
+              }`}
+            >
               {message.messageText}
             </div>
           </div>
+        </div>
         ))}
       </div>
       <div className='flex space-x-4'>
@@ -198,9 +233,16 @@ function App() {
   }
 
   const refreshCurrentState = async()=>{
-    const conversation = await fetchConversation(currentMatchandChat.conversation.id);
-    setCurrentMatchandChat({match:currentMatchandChat.match,conversation:conversation});
+  try {
+    const updatedConversation = await fetchConversation(currentMatchandChat.conversation.id);
+    setCurrentMatchandChat(prev => ({
+      ...prev,
+      conversation: updatedConversation
+    }));
+  } catch (error) {
+    console.error("Error refreshing the conversation:", error);
   }
+};
 
   const onSelectMatch = async(profile,conversationId)=>{
     const conversation = await fetchConversation(conversationId);
@@ -220,7 +262,12 @@ function App() {
       case 'matches':
         return <Matches matches={matches} onSelectMatch={onSelectMatch}/>
       case 'chat':
-        return <ChatScreen  refreshState ={refreshCurrentState} currentMatch={currentMatchandChat.match} conversation={currentMatchandChat.conversation} />
+        return <ChatScreen  
+        refreshState ={refreshCurrentState} 
+        currentMatch={currentMatchandChat.match} 
+        conversation={currentMatchandChat.conversation}
+        setCurrentMatchandChat={setCurrentMatchandChat}
+        />
       default:
         return <ProfileSelector />
     }
